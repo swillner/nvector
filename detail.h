@@ -257,11 +257,11 @@ struct foreach_helper<n, n, Args...> {
     }
     template<typename Function, std::size_t... Ns>
     static constexpr void foreach_view_parallel(Function&& func, const std::tuple<Args...>& views) {
-        loop_foreach_view_parallel(std::forward<Function>(func), std::forward<Args>(std::get<Ns>(views))...);
+        loop_foreach_view_parallel(std::forward<Function>(func), std::get<Ns>(views)...);
     }
     template<typename Function, std::size_t... Ns>
     static constexpr void foreach_aligned_parallel(Function&& func, const std::tuple<Args...>& views) {
-        loop_foreach_aligned_view_parallel(std::forward<Function>(func), std::forward<Args>(std::get<Ns>(views))...);
+        loop_foreach_aligned_view_parallel(std::forward<Function>(func), std::get<Ns>(views)...);
     }
     template<typename Function, typename Splittype, std::size_t... Ns>
     static constexpr bool foreach_split(Function&& func, const std::tuple<Args...>& views) {
