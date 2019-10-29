@@ -83,15 +83,15 @@ class Vector : public View<T, dim, Iterator> {
     }
 
     template<typename... Args>
-    constexpr void resize(const T& initial_value, Args&&... args) {
+    void resize(const T& initial_value, Args&&... args) {
         this->template initialize_sizes<0>(std::forward<Args>(args)...);
         data_m.resize(detail::multiply_all(std::forward<Args>(args)...), initial_value);
         it = std::begin(data_m);
     }
 
-    constexpr void reset(const T& initial_value) { std::fill(std::begin(data_m), std::end(data_m), initial_value); }
+    void reset(const T& initial_value) { std::fill(std::begin(data_m), std::end(data_m), initial_value); }
 
-    constexpr Storage& data() { return data_m; }
+    Storage& data() { return data_m; }
     constexpr const Storage& data() const { return data_m; }
 };
 

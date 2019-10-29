@@ -62,7 +62,7 @@ class View {
 
       public:
         constexpr SplitViewHandler(Iterator it_p, std::array<Slice, inner_dim> dims_p) : it(std::move(it_p)), dims(std::move(dims_p)){};
-        constexpr View<T, inner_dim, Iterator, Tref> operator[](std::size_t index) { return {it + index, dims}; }
+        View<T, inner_dim, Iterator, Tref> operator[](std::size_t index) { return {it + index, dims}; }
         constexpr const View<T, inner_dim, Iterator, Tref> operator[](std::size_t index) const { return {it + index, dims}; }
     };
 
@@ -93,8 +93,8 @@ class View {
         constexpr std::size_t get_end_index() const { return end_index; }
         constexpr std::size_t get_index() const { return total_index; }
         constexpr const std::array<std::size_t, dim>& pos() const { return pos_m; }
-        constexpr Tref operator*() { return detail::foreach_dim<0, dim>::template dereference<Tref>(0, pos_m, view->dims, view->it); }
-        constexpr iterator operator++() {
+        constexpr Tref operator*() const { return detail::foreach_dim<0, dim>::template dereference<Tref>(0, pos_m, view->dims, view->it); }
+        iterator operator++() {
             detail::foreach_dim<0, dim>::increase(pos_m, view->dims);
             ++total_index;
             return *this;
@@ -138,8 +138,8 @@ class View {
         constexpr std::size_t get_end_index() const { return end_index; }
         constexpr std::size_t get_index() const { return total_index; }
         constexpr const std::array<std::size_t, dim>& pos() const { return pos_m; }
-        constexpr const Tref operator*() { return detail::foreach_dim<0, dim>::template dereference<Tref>(0, pos_m, view->dims, view->it); }
-        constexpr const_iterator operator++() {
+        constexpr const Tref operator*() const { return detail::foreach_dim<0, dim>::template dereference<Tref>(0, pos_m, view->dims, view->it); }
+        const_iterator operator++() {
             detail::foreach_dim<0, dim>::increase(pos_m, view->dims);
             ++total_index;
             return *this;
@@ -164,12 +164,12 @@ class View {
     Iterator it;
 
     template<std::size_t c, typename... Args>
-    constexpr Tref i_(std::size_t index, const std::size_t& i, Args&&... args) noexcept {
+    Tref i_(std::size_t index, const std::size_t& i, Args&&... args) noexcept {
         return i_<c + 1>(index + (i + std::get<c>(dims).begin) * std::get<c>(dims).stride, std::forward<Args>(args)...);
     }
 
     template<std::size_t c>
-    constexpr Tref i_(std::size_t index) noexcept {
+    Tref i_(std::size_t index) noexcept {
         static_assert(c == dim, "wrong number of arguments");
         return it[index];
     }
@@ -186,7 +186,7 @@ class View {
     }
 
     template<std::size_t c, typename... Args>
-    constexpr Tref at_(std::size_t index, const std::size_t& i, Args&&... args) {
+    Tref at_(std::size_t index, const std::size_t& i, Args&&... args) {
         if (i >= std::get<c>(dims).size) {
             throw std::out_of_range("index out of bounds");
         }
@@ -194,7 +194,7 @@ class View {
     }
 
     template<std::size_t c>
-    constexpr Tref at_(std::size_t index) {
+    Tref at_(std::size_t index) {
         static_assert(c == dim, "wrong number of arguments");
         return it[index];
     }
@@ -214,24 +214,24 @@ class View {
     }
 
     template<std::size_t c, typename... Args>
-    constexpr void initialize_slices(const Slice& i, Args&&... args) {
+    void initialize_slices(const Slice& i, Args&&... args) {
         std::get<c>(dims) = i;
         initialize_slices<c + 1>(std::forward<Args>(args)...);
     }
 
     template<std::size_t c>
-    constexpr void initialize_slices() {
+    void initialize_slices() {
         static_assert(c == dim, "wrong number of arguments");
     }
 
     template<std::size_t c, typename... Args>
-    constexpr void initialize_sizes(std::size_t size, Args&&... args) {
+    void initialize_sizes(std::size_t size, Args&&... args) {
         std::get<c>(dims) = {0, size, detail::multiply_all<int>(std::forward<Args>(args)...)};
         initialize_sizes<c + 1>(std::forward<Args>(args)...);
     }
 
     template<std::size_t c>
-    constexpr void initialize_sizes() {
+    void initialize_sizes() {
         static_assert(c == dim, "wrong number of arguments");
     }
 
@@ -303,7 +303,8 @@ class View {
 
     constexpr View() = default;
     View(const View&) = delete;
-    constexpr View(View&&) noexcept = default;
+    View(View&&) noexcept = default;
+    View& operator=(View&&) noexcept = default;
     constexpr View(Iterator it_p, std::array<Slice, dim> dims_p) : it(std::move(it_p)), dims(std::move(dims_p)) {}
 
     template<typename... Args, typename detail::only_for_sizes<Args...>* = nullptr>
@@ -317,12 +318,12 @@ class View {
     }
 
     template<bool... Args>
-    constexpr SplitView<Split<Args...>::inner_dim, Split<Args...>::outer_dim> split() {
+    SplitView<Split<Args...>::inner_dim, Split<Args...>::outer_dim> split() {
         return splitter_helper<Split<Args...>>::split(it, dims);
     }
 
     template<typename Splittype>
-    constexpr SplitView<Splittype::inner_dim, Splittype::outer_dim> split() {
+    SplitView<Splittype::inner_dim, Splittype::outer_dim> split() {
         return splitter_helper<Splittype>::split(it, dims);
     }
 
@@ -337,7 +338,7 @@ class View {
     }
 
     template<typename Function>
-    constexpr bool foreach_element(Function&& func) {
+    bool foreach_element(Function&& func) {
         iterator it_l = begin();
         for (; !it_l.ended(); ++it_l) {
             if (!detail::foreach_dim<0, dim, Tref>::template pass_parameters(it_l.pos(), std::forward<Function>(func), *it_l)) {
@@ -347,11 +348,11 @@ class View {
         return true;
     }
 
-    constexpr Iterator& data() { return it; }
+    Iterator& data() { return it; }
     constexpr const Iterator& data() const { return it; }
 
     template<typename Function>
-    constexpr void foreach_parallel(Function&& func) {
+    void foreach_parallel(Function&& func) {
         const iterator bg = begin();
 #pragma omp parallel for default(shared)
         for (std::size_t i = 0; i < bg.get_end_index(); ++i) {
@@ -360,7 +361,7 @@ class View {
         }
     }
 
-    constexpr void swap_dims(std::size_t i, std::size_t j) {
+    void swap_dims(std::size_t i, std::size_t j) {
         if (i >= dims.size() || j >= dims.size()) {
             throw std::out_of_range("index out of bounds");
         }
@@ -368,7 +369,7 @@ class View {
     }
 
     template<typename... Args>
-    constexpr Tref operator()(Args&&... args) noexcept {
+    Tref operator()(Args&&... args) noexcept {
         return i_<0>(0, std::forward<Args>(args)...);
     }
 
@@ -378,7 +379,7 @@ class View {
     }
 
     template<typename... Args>
-    constexpr Tref at(Args&&... args) {
+    Tref at(Args&&... args) {
         return at_<0>(0, std::forward<Args>(args)...);
     }
 
@@ -404,13 +405,13 @@ class View {
     constexpr std::size_t size(std::size_t i) const { return dims.at(i).size; }
 
     constexpr std::size_t total_size() const { return detail::foreach_dim<0, dim>::total_size(dims); }
-    constexpr Tref operator[](std::size_t i) { return it[i]; }
+    Tref operator[](std::size_t i) { return it[i]; }
     constexpr const Tref operator[](std::size_t i) const { return it[i]; }
 
-    constexpr void reset(const T& initial_value) { std::fill(iterator::begin(this), iterator::end(this), initial_value); }
+    void reset(const T& initial_value) { std::fill(iterator::begin(this), iterator::end(this), initial_value); }
 
-    constexpr iterator begin() { return iterator::begin(this); }
-    constexpr iterator end() { return iterator::end(this); }
+    iterator begin() { return iterator::begin(this); }
+    iterator end() { return iterator::end(this); }
     constexpr const_iterator begin() const { return const_iterator::begin(this); }
     constexpr const_iterator end() const { return const_iterator::end(this); }
 };
