@@ -176,8 +176,9 @@ template<typename Function, typename Additional, typename Arg, typename... Args>
 constexpr bool loop_foreach_iterator(Function&& func, Additional&& temp, Arg&& it, Args&&... its) {
     (void)temp;  // temp is used to keep views for the iterators in memory for the lifespan of this function call
     while (none_ended(std::forward<Arg>(it), std::forward<Args>(its)...)) {
-        if (!foreach_dim<0, Arg::dimensions, typename Arg::reference_type, typename Args::reference_type...>::template pass_parameters(
-                it.pos(), std::forward<Function>(func), *it, *its...)) {
+        if (!foreach_dim<0, Arg::dimensions, typename std::remove_reference<Arg>::type::reference_type,
+                         typename std::remove_reference<Args>::type::reference_type...>::template pass_parameters(it.pos(), std::forward<Function>(func), *it,
+                                                                                                                  *its...)) {
             return false;
         }
         ++it;
