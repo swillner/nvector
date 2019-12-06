@@ -101,7 +101,7 @@ struct foreach_dim {
         return foreach_dim<c + 1, dim>::template end<Ns..., c>(dims);
     }
     template<typename Tref, typename Iterator>
-    static constexpr Tref dereference(std::size_t index, std::array<std::size_t, dim>& pos, const std::array<Slice, dim>& dims, Iterator&& it) {
+    static constexpr Tref dereference(std::size_t index, const std::array<std::size_t, dim>& pos, const std::array<Slice, dim>& dims, Iterator&& it) {
         return foreach_dim<c + 1, dim>::template dereference<Tref>(index + (std::get<c>(pos) + std::get<c>(dims).begin) * std::get<c>(dims).stride, pos, dims,
                                                                    std::forward<Iterator>(it));
     }
@@ -150,7 +150,7 @@ struct foreach_dim<dim, dim, Args...> {
         return {std::get<Ns>(dims).size...};
     }
     template<typename Tref, typename Iterator>
-    static constexpr Tref dereference(std::size_t index, std::array<std::size_t, dim>& pos, const std::array<Slice, dim>& dims, Iterator&& it) {
+    static constexpr Tref dereference(std::size_t index, const std::array<std::size_t, dim>& pos, const std::array<Slice, dim>& dims, Iterator&& it) {
         (void)pos;
         (void)dims;
         return it[index];
