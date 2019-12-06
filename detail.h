@@ -243,11 +243,11 @@ struct foreach_helper {
 
 template<typename Function, typename... Args>
 constexpr bool foreach_split_helper(Function&& func, Args&&... splits) {
-    return loop_foreach_iterator(func, collect(splits...), std::begin(splits)...);
+    return loop_foreach_iterator(std::forward<Function>(func), collect(splits...), std::begin(splits)...);
 }
 template<typename Function, typename... Args>
 constexpr void foreach_split_helper_parallel(Function&& func, Args&&... splits) {
-    loop_foreach_view_parallel(func, std::forward<Args>(splits)...);
+    loop_foreach_view_parallel(std::forward<Function>(func), std::forward<Args>(splits)...);
 }
 
 template<std::size_t n, typename... Args>
