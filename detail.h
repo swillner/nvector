@@ -65,13 +65,13 @@ constexpr B&& map(A&& /* unused */, B&& b) {
     return std::move(b);
 }
 
-void pass() {}
+inline void pass() {}
 
 template<typename Arg>
-void pass(Arg&& /* unused */) {}
+inline void pass(Arg&& /* unused */) {}
 
 template<typename Arg, typename... Args>
-void pass(Arg&& /* unused */, Args&&... args) {
+inline void pass(Arg&& /* unused */, Args&&... args) {
     pass(std::forward<Args>(args)...);
 }
 
